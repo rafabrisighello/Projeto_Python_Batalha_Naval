@@ -3,20 +3,17 @@
 # Flux conditions
 
 win_condition = False
-p1_set = False
-p2_set = False
+p_set = [False, False]
 cont = False
 
 # Ship dictionary
 
 ship_dic = {'Carrier':[5,1], 'Battleship': [4,2], 'Cruiser': [3,3], 'Destroyer': [2,4]}
-ship_kind = {1:'Carrier', 2:'Battleship', 3:'Cruiser', 4:' Destroyer'}
+ship_kind = {1:'Carrier', 2:'Battleship', 3:'Cruiser', 4:'Destroyer'}
 
-ships_to_place_P1 = ship_dic
-ships_to_place_P2 = ship_dic
+ships_to_place = [ship_dic, ship_dic]
 
-ships_set_P1 = {}
-ships_set_P2 = {}
+ships_set = [{}, {}]
 
 # Grid initialization
 
@@ -51,9 +48,11 @@ def ship_placer(grid_item, ship, start_row, start_col, orientation):
     cor_dic = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9, 'J': 10}
     start_col_int = cor_dic[start_col]
     ship_size = ship_dic[ship][0]
+    
     if (start_row < 1 or start_row > 10 or start_col_int < 1 or start_col_int > 10):
         cont = False
         print('Input ouf of bounds! Input correct starting points')
+    
     elif (orientation == 'H'):
         if(start_col_int + ship_size - 1 > 10):
             cont = False
@@ -82,34 +81,40 @@ def ship_placer(grid_item, ship, start_row, start_col, orientation):
                     break
                 else:
                     grid_item[i][start_col_int] = '@'
-    
+
+
+def player_set_loop(player):
+    print('Player ' + str(player) + ', arrange your ships in the game board!\n')
+    while not(p_set[player - 1]):
+        print('Options remaining for player ' + str(player) + ': Kind of ship: [size, quantity] \n')
+        print('Your options are: \n')
+        print(ships_to_place[player - 1])
+        ship_code = int(input('\nSelect your ship kind according to the options above. Type 1 for Carrier, 2 for Battleship, 3 for Cruiser, 4 for Destroyer\n'))
+        grid_render(grid)
+        ship_start_row = int(input('\nSelect your starting row according to the grid\n'))
+        ship_start_col_raw = input('\nSelect your starting column according to the grid\n')
+        ship_start_col_trim = ship_start_col_raw.upper()
+        ship_orientation_raw = input('\n Set your ship orientation: type V for vertical ou H for horizontal\n')
+        ship_orientation_trim = ship_orientation_raw.upper()
+        ship_placer(grid_P1, ship_kind[ship_code], ship_start_row, ship_start_col_trim, ship_orientation_trim)
+        grid_render(grid_P1)
+        ships_to_place[player - 1][ship_kind[ship_code]][1] -= 1
+        print(ships_to_place[player - 1])
+        if ships_to_place[player - 1][ship_kind[ship_code]][1] == 0:
+            ships_set[player - 1] = ships_to_place[player - 1].pop(ship_kind[ship_code])
+            print(ships_set[player - 1])
+            if len(ships_to_place[player - 1]) == 0:
+                p_set[player - 1] = True
+
 
 # Loop de jogo principal
 
 print('Welcome to Battleship!!\n')
 
-print('Player 1, arrange your ships in the game board!\n')
+player_set_loop(1)
+player_set_loop(2)
 
-while not(p1_set):
-    print('Options remaining: Kind of ship: [size, quantity] \n')
-    print('Your options are: \n')
-    print(ships_to_place_P1)
-    ship_code = int(input('\nSelect your ship kind according to the options above. Type 1 for Carrier, 2 for Battleship, 3 for Cruiser, 4 for Destroyer\n'))
-    grid_render(grid)
-    ship_start_row = int(input('\nSelect your starting row according to the grid\n'))
-    ship_start_col_raw = input('\nSelect your starting column according to the grid\n')
-    ship_start_col_trim = ship_start_col_raw.upper()
-    ship_orientation_raw = input('\n Set your ship orientation: type V for vertical ou H for horizontal\n')
-    ship_orientation_trim = ship_orientation_raw.upper()
-    ship_placer(grid_P1, ship_kind[ship_code], ship_start_row, ship_start_col_trim, ship_orientation_trim)
-    grid_render(grid_P1)
-    ships_to_place_P1[ship_kind[ship_code]][1] -= 1
-    print(ships_to_place_P1)
-    if ships_to_place_P1[ship_kind[ship_code]][1] == 0:
-        ships_set_P1 = ships_to_place_P1.pop(ship_kind[ship_code])
-        print(ships_set_P1)
-        if len(ships_to_place_P1) == 0:
-            p1_set = True
+
 
 
 #grid_render(grid_P1)
