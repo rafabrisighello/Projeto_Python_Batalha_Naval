@@ -6,14 +6,15 @@ win_condition = False
 p_set = [False, False]
 cont = False
 
-# Ship dictionary
+# Ship and grid dictionary
 
 ship_dic = {'Carrier':[5,1], 'Battleship': [4,2], 'Cruiser': [3,3], 'Destroyer': [2,4]}
 ship_kind = {1: 'Carrier', 2: 'Battleship', 3:'Cruiser', 4:'Destroyer'}
+cor_dic = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9, 'J': 10}
 
 ships_to_place = [ship_dic, ship_dic]
 
-ships_set1 = [{}, {}]
+ships_set = [[], []]
 
 # Grid initialization
 
@@ -45,64 +46,76 @@ def grid_render(grid_item):
 
 # Função de posicionamento dos navios
 def ship_placer(grid_item, ship, start_row, start_col, orientation):
-    cor_dic = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9, 'J': 10}
     start_col_int = cor_dic[start_col]
     ship_size = 6 - ship
+    locus = []
     
     if (start_row < 1 or start_row > 10 or start_col_int < 1 or start_col_int > 10):
-        cont = False
         print('Input ouf of bounds! Input correct starting points')
+        return None
     
     elif (orientation == 'H'):
         if(start_col_int + ship_size - 1 > 10):
-            cont = False
             print('Ship out of bounds. Insert again!')
+            return None
         else:
             for i in range(start_col_int, start_col_int + ship_size):
                 if grid_item[start_row][i] == '@':
                     for j in range(start_col_int, i):
                         grid_item[start_row][j] = '~'
                     print('Not possible, try again!')
-                    break
+                    return None
                 else:
                     grid_item[start_row][i] = '@'
+                    locus.append([start_row, i])
+            print(locus)
+            return locus
                     
     elif (orientation == 'V'):
         if(start_row + ship_size - 1 > 10):
-            cont = False
             print('Ship out of bounds. Insert again!')
+            return None
         else:
             for i in range(start_row, start_row + ship_size):
                 if grid_item[i][start_col_int] == '@':
-                    cont = False
                     for j in range(start_row,i):
                         grid_item[j][start_col_int] = '~'
                     print('Not possible, try again!')
-                    break
+                    return None
                 else:
                     grid_item[i][start_col_int] = '@'
+                    locus.append([i, start_col_int])
+            print(locus)
+            return locus
 
 
 def player_set_loop(player):
+    
     print('Player ' + str(player) + ', arrange your ships in the game board!\n')
-    while not(p_set[player - 1]):
+    
+    while ships_to_place[player - 1]:
         print('Options remaining for player ' + str(player) + ': Kind of ship: [size, quantity, option index] \n')
         print('Your options are: \n')
         print(ships_to_place[player - 1])
+        
         ship_code = select_ship(ships_to_place[player - 1])
         grid_render(grid)
         row = select_row()
         col = select_column()
         orientation = select_orientation()
-        ship_placer(grid_P1, ship_code, row, col, orientation)
+        ship_placed = ship_placer(grid_P1, ship_code, row, col, orientation)
+        
+        if  ship_placed is not None:
+            ships_to_place[player - 1][ship_kind[ship_code]][1] -= 1
+            ships_set[player - 1].append([ship_kind[ship_code], ship_placed])
+        
+        
+        print(ships_set[player - 1])
+        
         grid_render(grid_P1)
-        ships_to_place[player - 1][ship_kind[ship_code]][1] -= 1
-        print(ships_to_place[player - 1])
+        
         if ships_to_place[player - 1][ship_kind[ship_code]][1] == 0:
-            ships_set1[player - 1] = ships_to_place[player - 1].pop(ship_kind[ship_code])
-            print(ships_set1[player - 1])
-            if len(ships_to_place[player - 1]) == 0:
-                p_set[player - 1] = True
+            ships_to_place[player - 1].pop(ship_kind[ship_code])
 
 
 def select_ship(ships_to_place):
@@ -139,8 +152,10 @@ def select_orientation():
         orientation = input('Set your ship orientation: type V for vertical ou H for horizontal\n').upper()
     return orientation
 
-def main_game_loop(player):
-    pass
+def attack_loop():
+    
+    while (ships_set[0] is not None) and (ships_set[1] is not None):
+        x_p1 = int()
 
 
 # Loop de jogo principal
@@ -150,10 +165,6 @@ print('=======================\n')
 
 player_set_loop(1)
 player_set_loop(2)
-
-n = 9 // 10
-print(n)
-
 
 
 
