@@ -1,4 +1,4 @@
-# Projeto de jogo de batalha naval usando programação estruturada
+# Battleship terminal game project - Rafael Brisighello
 
 # Flux conditions
 
@@ -30,10 +30,7 @@ grid = [['  ','A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
         ['9 ','~', '~', '~', '~', '~', '~', '~', '~', '~', '~'], 
         ['10','~', '~', '~', '~', '~', '~', '~', '~', '~', '~']]
 
-grid_P1 = grid
-grid_P2 = grid
-game_P1 = grid
-game_P2 = grid
+grids = [grid,grid]
 
 # Função de renderização
 def grid_render(grid_item):
@@ -91,28 +88,26 @@ def ship_placer(grid_item, ship, start_row, start_col, orientation):
 
 def player_set_loop(player):
     
-    print('Player ' + str(player) + ', arrange your ships in the game board!\n')
+    print('Player ' + str(player) + ', arrange your ships in the game board!')
     
     while ships_to_place[player - 1]:
-        print('Options remaining for player ' + str(player) + ': Kind of ship: [size, quantity, option index] \n')
+        
+        grid_render(grids[player - 1])
+        print('Options remaining for player ' + str(player) + ': Kind of ship: [size, quantity] \n')
         print('Your options are: \n')
         print(ships_to_place[player - 1])
         
         ship_code = select_ship(ships_to_place[player - 1])
-        grid_render(grid)
         row = select_row()
         col = select_column()
         orientation = select_orientation()
-        ship_placed = ship_placer(grid_P1, ship_code, row, col, orientation)
+        ship_placed = ship_placer(grids[player - 1], ship_code, row, col, orientation)
         
         if  ship_placed is not None:
             ships_to_place[player - 1][ship_kind[ship_code]][1] -= 1
             ships_set[player - 1].append([ship_kind[ship_code], ship_placed])
         
-        
-        print(ships_set[player - 1])
-        
-        grid_render(grid_P1)
+        print(ships_set[player - 1])      
         
         if ships_to_place[player - 1][ship_kind[ship_code]][1] == 0:
             ships_to_place[player - 1].pop(ship_kind[ship_code])
@@ -152,26 +147,62 @@ def select_orientation():
         orientation = input('Set your ship orientation: type V for vertical ou H for horizontal\n').upper()
     return orientation
 
-def attack_loop():
+def attack_loop(player):
     
-    while (ships_set[0] is not None) and (ships_set[1] is not None):
-        x_p1 = int()
+    r_P = int(input("\n P{0}, choose row coordinate to bomb: ".format(player - 1)))
+    cint_P = int(input("\n P{0}, choose clumn coordinate to bomb: ".format(player - 1)))
+    c_P = cor_dic(cint_P)
+    attack_point = [r_P, c_P]
+    rival = 0
+    
+    if player == 1:
+        rival == 2
+    else:
+        rival == 1
+
+    for ship in ships_set[rival - 1]:
+        for coordinates in ship[1]:
+            if (r_P == coordinates[0]) and (c_P == coordinates[1]):
+                grids[player - 1][r_P][c_P] = 'X'
+                coordinates.pop()
+                print("\n P{0}'s ship hit!!! It was a {1}!!!".format(rival, ship[0]))
+                grid_render(grids[player - 1])
+                if len(ship[1]) == 0:
+                    print("\n P{0}'s ship sunk!!! It was a {1}!!!".format(rival, ship[0]))
+                    ships_set[player - 1].pop(ship)
+                    if len(ship) == 0:
+                        return True
+            return False   
+    return False
+
+def main_loop():
+    
+    end_condition = False
+    play_count = 1
+    while end_condition != True:
+        if (play_count % 2) != 0:
+            end_condition = attack_loop(1)
+            winner = 1
+        else:
+            end_condition = attack_loop(2)
+            winner = 2
+        play_count += 1
+
+    print("P{0} wins!!!!! Congratulations!!!!".format(winner))
+
+def game():
+    # Welcome
+    print('\n==============================================')
+    print('!!!           Welcome to Battleship          !!!')
+    print('==============================================\n')
+    
+    # Board Setting Loop
+    player_set_loop(1)
+    player_set_loop(2)
+
+    # Attack Loop
+    main_loop()
+
+game()
 
 
-# Loop de jogo principal
-print('\n=======================')
-print('Welcome to Battleship!!')
-print('=======================\n')
-
-player_set_loop(1)
-player_set_loop(2)
-
-
-
-#grid_render(grid_P1)
-#grid_render(grid_P2)
-
-#ship_placer(grid_P1, 'Carrier', 1, 'D', 'V')
-#grid_render(grid_P1)
-#ship_placer(grid_P1, 'Cruiser', 1, 'B', 'H')
-#grid_render(grid_P1)
