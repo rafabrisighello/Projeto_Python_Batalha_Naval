@@ -90,6 +90,8 @@ def player_set_loop(player):
     
     print('Player ' + str(player) + ', arrange your ships in the game board!')
     
+    print(ships_to_place)
+
     while ships_to_place[player - 1]:
         
         grid_render(grids[player - 1])
