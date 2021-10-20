@@ -1,20 +1,26 @@
 # Battleship terminal game project - Rafael Brisighello
 
+import copy
+
 # Flux conditions
 
 win_condition = False
 p_set = [False, False]
 cont = False
 
-# Ship and grid dictionary
+# Ship and grid dictionaries
 
 ship_dic = {'Carrier':[5,1], 'Battleship': [4,2], 'Cruiser': [3,3], 'Destroyer': [2,4]}
 ship_kind = {1: 'Carrier', 2: 'Battleship', 3:'Cruiser', 4:'Destroyer'}
 cor_dic = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9, 'J': 10}
-
-ships_to_place = [ship_dic, ship_dic]
-
-ships_set = [[], []]
+ships_set = []
+ship_dic_1 = copy.deepcopy(ship_dic)
+ship_dic_2 = copy.deepcopy(ship_dic)
+ships_to_place = [ship_dic_1, ship_dic_2]
+score = [ship_dic[key][1] for key in ship_dic.keys()]
+score_1 = score[:]
+score_2 = score[:]
+scores = [score_1, score_2]
 
 # Grid initialization
 
@@ -30,9 +36,11 @@ grid = [['  ','A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
         ['9 ','~', '~', '~', '~', '~', '~', '~', '~', '~', '~'], 
         ['10','~', '~', '~', '~', '~', '~', '~', '~', '~', '~']]
 
-grids = [grid,grid]
+grid_1 = copy.deepcopy(grid)
+grid_2 = copy.deepcopy(grid)
+grids = [grid_1, grid_2]
 
-# Função de renderização
+# Render function
 def grid_render(grid_item):
     for row in grid_item:
         print('\n')
@@ -41,7 +49,7 @@ def grid_render(grid_item):
     print('\n')
 
 
-# Função de posicionamento dos navios
+# Ship positioning function
 def ship_placer(grid_item, ship, start_row, start_col, orientation):
     start_col_int = cor_dic[start_col]
     ship_size = 6 - ship
@@ -63,9 +71,9 @@ def ship_placer(grid_item, ship, start_row, start_col, orientation):
                     print('Not possible, try again!')
                     return None
                 else:
-                    grid_item[start_row][i] = '@'
+                    #grid_item[start_row][i] = '@'
                     locus.append([start_row, i])
-            print(locus)
+            #print(locus)
             return locus
                     
     elif (orientation == 'V'):
@@ -80,24 +88,24 @@ def ship_placer(grid_item, ship, start_row, start_col, orientation):
                     print('Not possible, try again!')
                     return None
                 else:
-                    grid_item[i][start_col_int] = '@'
+                    #grid_item[i][start_col_int] = '@'
                     locus.append([i, start_col_int])
-            print(locus)
+            #print(locus)
             return locus
 
-
+# Players set loop
 def player_set_loop(player):
     
     print('Player ' + str(player) + ', arrange your ships in the game board!')
-    
-    print(ships_to_place)
+
+    shipset = []
 
     while ships_to_place[player - 1]:
         
-        grid_render(grids[player - 1])
+        grid_render(grid)
         print('Options remaining for player ' + str(player) + ': Kind of ship: [size, quantity] \n')
         print('Your options are: \n')
-        print(ships_to_place[player - 1])
+        #print(ships_to_place[player - 1])
         
         ship_code = select_ship(ships_to_place[player - 1])
         row = select_row()
@@ -107,14 +115,22 @@ def player_set_loop(player):
         
         if  ship_placed is not None:
             ships_to_place[player - 1][ship_kind[ship_code]][1] -= 1
-            ships_set[player - 1].append([ship_kind[ship_code], ship_placed])
+            shipset.append([ship_code, ship_placed])
         
-        print(ships_set[player - 1])      
+        print('\n')
+        #print(shipset)      
         
         if ships_to_place[player - 1][ship_kind[ship_code]][1] == 0:
             ships_to_place[player - 1].pop(ship_kind[ship_code])
 
+        print('\n')
+        #print(ships_to_place[player - 1])
+    
+    ships_set.append(shipset)
+    #print(ships_set)
 
+
+# ship selection function
 def select_ship(ships_to_place):
     ship_code = 0
     choices = []
@@ -149,34 +165,55 @@ def select_orientation():
         orientation = input('Set your ship orientation: type V for vertical ou H for horizontal\n').upper()
     return orientation
 
+# Player attacks loops
 def attack_loop(player):
     
-    r_P = int(input("\n P{0}, choose row coordinate to bomb: ".format(player - 1)))
-    cint_P = int(input("\n P{0}, choose clumn coordinate to bomb: ".format(player - 1)))
-    c_P = cor_dic(cint_P)
-    attack_point = [r_P, c_P]
-    rival = 0
+    attack_point = [-1,-1]
     
+    while (attack_point[0] not in range(1,11)) and (attack_point[1] not in range(1,11)):
+        r_P = int(input("\n P{0}, choose row coordinate to bomb: ".format(player)))
+        cint_P = input("\n P{0}, choose column coordinate to bomb: ".format(player)).upper()
+        c_P = cor_dic[cint_P]
+        attack_point = [r_P, c_P]
+      
     if player == 1:
-        rival == 2
+        rival = 2
     else:
-        rival == 1
+        rival = 1
+
 
     for ship in ships_set[rival - 1]:
+        if ship == None:
+            continue
         for coordinates in ship[1]:
-            if (r_P == coordinates[0]) and (c_P == coordinates[1]):
-                grids[player - 1][r_P][c_P] = 'X'
-                coordinates.pop()
-                print("\n P{0}'s ship hit!!! It was a {1}!!!".format(rival, ship[0]))
-                grid_render(grids[player - 1])
+            if (coordinates == attack_point):
+                grids[rival - 1][r_P][c_P] = 'X'
+                ship[1].remove(coordinates)
+                print("\n P{0}'s ship hit!!! It was a {1}!!!".format(rival, ship_kind[ship[0]]))
+                grid_render(grids[rival - 1])
+                #print(ships_set[rival - 1])
                 if len(ship[1]) == 0:
-                    print("\n P{0}'s ship sunk!!! It was a {1}!!!".format(rival, ship[0]))
-                    ships_set[player - 1].pop(ship)
-                    if len(ship) == 0:
-                        return True
-            return False   
+                    print("\n P{0}'s ship sunk!!! It was a {1}!!!".format(rival, ship_kind[ship[0]]))
+                    scores[rival - 1][ship[0] - 1] -= 1
+                    ship = None
+                    return check_score()
+                break
     return False
 
+# Score
+def check_score():
+    print("\nP1 has {0} {1}s, {2} {3}s, {4} {5}s and {6} {7}s left".format(score_1[0], ship_kind[1], score_1[1], ship_kind[2], score_1[2], ship_kind[3], score_1[3], ship_kind[4]))
+    print("\nP2 has {0} {1}s, {2} {3}s, {4} {5}s and {6} {7}s left".format(score_2[0], ship_kind[1], score_2[1], ship_kind[2], score_2[2], ship_kind[3], score_2[3], ship_kind[4]))
+    if sum(score_1) == 0:
+        print("\nP1 out of ships! P2 wins!!!")
+        return True
+    if sum(score_2) == 0:
+        print("\nP2 out of ships! P1 wins!!!")
+        return True
+    return False
+
+
+# Game controller
 def main_loop():
     
     end_condition = False
@@ -189,16 +226,18 @@ def main_loop():
             end_condition = attack_loop(2)
             winner = 2
         play_count += 1
+        print(play_count)
 
     print("P{0} wins!!!!! Congratulations!!!!".format(winner))
 
+# Main game loop
 def game():
     # Welcome
     print('\n==============================================')
     print('!!!           Welcome to Battleship          !!!')
     print('==============================================\n')
     
-    # Board Setting Loop
+    # Board Setting Loops
     player_set_loop(1)
     player_set_loop(2)
 
@@ -206,5 +245,4 @@ def game():
     main_loop()
 
 game()
-
 
