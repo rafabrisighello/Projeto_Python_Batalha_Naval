@@ -39,6 +39,9 @@ grid = [['  ','A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
 grid_1 = copy.deepcopy(grid)
 grid_2 = copy.deepcopy(grid)
 grids = [grid_1, grid_2]
+grid_P1 = copy.deepcopy(grid)
+grid_P2 = copy.deepcopy(grid)
+grids_P = [grid_P1, grid_P2]
 
 # Render function
 def grid_render(grid_item):
@@ -71,7 +74,7 @@ def ship_placer(grid_item, ship, start_row, start_col, orientation):
                     print('Not possible, try again!')
                     return None
                 else:
-                    #grid_item[start_row][i] = '@'
+                    grid_item[start_row][i] = '@'
                     locus.append([start_row, i])
             #print(locus)
             return locus
@@ -88,7 +91,7 @@ def ship_placer(grid_item, ship, start_row, start_col, orientation):
                     print('Not possible, try again!')
                     return None
                 else:
-                    #grid_item[i][start_col_int] = '@'
+                    grid_item[i][start_col_int] = '@'
                     locus.append([i, start_col_int])
             #print(locus)
             return locus
@@ -102,10 +105,10 @@ def player_set_loop(player):
 
     while ships_to_place[player - 1]:
         
-        grid_render(grid)
+        grid_render(grids[player - 1])
         print('Options remaining for player ' + str(player) + ': Kind of ship: [size, quantity] \n')
         print('Your options are: \n')
-        #print(ships_to_place[player - 1])
+        print(ships_to_place[player - 1])
         
         ship_code = select_ship(ships_to_place[player - 1])
         row = select_row()
@@ -169,35 +172,40 @@ def select_orientation():
 def attack_loop(player):
     
     attack_point = [-1,-1]
+
+    if player == 1:
+        rival = 2
+    else:
+        rival = 1 
+
+    grid_render(grids_P[rival - 1])  
     
     while (attack_point[0] not in range(1,11)) and (attack_point[1] not in range(1,11)):
         r_P = int(input("\n P{0}, choose row coordinate to bomb: ".format(player)))
         cint_P = input("\n P{0}, choose column coordinate to bomb: ".format(player)).upper()
         c_P = cor_dic[cint_P]
         attack_point = [r_P, c_P]
-      
-    if player == 1:
-        rival = 2
-    else:
-        rival = 1
-
 
     for ship in ships_set[rival - 1]:
         if ship == None:
             continue
         for coordinates in ship[1]:
             if (coordinates == attack_point):
-                grids[rival - 1][r_P][c_P] = 'X'
+                grids_P[rival - 1][r_P][c_P] = 'X'
                 ship[1].remove(coordinates)
                 print("\n P{0}'s ship hit!!! It was a {1}!!!".format(rival, ship_kind[ship[0]]))
-                grid_render(grids[rival - 1])
+                grid_render(grids_P[rival - 1])
                 #print(ships_set[rival - 1])
                 if len(ship[1]) == 0:
                     print("\n P{0}'s ship sunk!!! It was a {1}!!!".format(rival, ship_kind[ship[0]]))
                     scores[rival - 1][ship[0] - 1] -= 1
                     ship = None
                     return check_score()
-                break
+                return False
+                
+    grids_P[rival - 1][r_P][c_P] = 'O'
+    grid_render(grids_P[rival - 1])
+    
     return False
 
 # Score
@@ -239,7 +247,11 @@ def game():
     
     # Board Setting Loops
     player_set_loop(1)
+    for i in range(16):
+        print('\n')
     player_set_loop(2)
+    for i in range(16):
+        print('\n')
 
     # Attack Loop
     main_loop()
